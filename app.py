@@ -30,7 +30,6 @@ HEADERS = {"X-Demo-Key": DEMO_KEY} if DEMO_KEY else {}
 
 st.set_page_config(page_title="piafzam")
 st.title("piafzam")
-st.caption("BirdNET France — l’analyse tourne sur piafzam.duckdns.org")
 
 blob = st.audio_input("enregistre un truc")
 fichier = st.file_uploader("ou un fichier", type=["wav", "mp3", "ogg", "flac", "m4a"])
