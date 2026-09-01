@@ -7,12 +7,19 @@ Local : `make api` puis `make demo`. Cloud : le même fichier, secret `PIAFZAM_A
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 import requests
 import streamlit as st
 
 # page_config d'abord (Cloud refuse toute commande Streamlit avant).
-st.set_page_config(page_title="PIAFZAM", page_icon="🪶", layout="centered")
+# page_title = titre de la carte Slack / Discord (Streamlit Cloud).
+_ICON = Path(__file__).with_name("icon.png")
+st.set_page_config(
+    page_title="Piafzam — quel oiseau est sur ce spectrogramme ?",
+    page_icon=str(_ICON) if _ICON.is_file() else "🪶",
+    layout="centered",
+)
 try:
     from dotenv import load_dotenv
 
@@ -34,6 +41,17 @@ except Exception:
 API = str(_secret_api or os.environ.get("PIAFZAM_API") or "http://127.0.0.1:8000").strip().rstrip("/")
 PREDICT_URL = f"{API}/predict"
 
+st.markdown(
+    """
+    <div style="position:fixed;left:0;right:0;bottom:0.45rem;z-index:999;
+                text-align:center;font-size:0.7rem;letter-spacing:0.18em;
+                opacity:0.38;">
+      <a href="https://piafzam.duckdns.org/" target="_top"
+         style="color:inherit;text-decoration:none;">PIAFZAM 2.0</a>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 st.title("PIAFZAM")
 st.caption("Quel oiseau est sur ce spectrogramme ?")
 
