@@ -16,6 +16,9 @@ import streamlit as st
 MIN_SHOW = 0.10
 DEFAULT_API = "https://piafzam.duckdns.org"
 
+# page_config d'abord (Cloud refuse toute commande Streamlit avant).
+st.set_page_config(page_title="PIAFZAM", page_icon="🪶", layout="centered")
+
 
 def _secret(name: str, default: str = "") -> str:
     """Lit Streamlit secrets, sinon l'env, sinon le défaut."""
@@ -30,7 +33,17 @@ API = _secret("PIAFZAM_API", DEFAULT_API).rstrip("/")
 DEMO_KEY = _secret("PIAFZAM_DEMO_KEY")
 HEADERS = {"X-Demo-Key": DEMO_KEY} if DEMO_KEY else {}
 
-st.set_page_config(page_title="PIAFZAM", page_icon="🪶", layout="centered")
+st.markdown(
+    """
+    <div style="position:fixed;left:0;right:0;bottom:0.45rem;z-index:999;
+                text-align:center;font-size:0.7rem;letter-spacing:0.18em;
+                opacity:0.38;">
+      <a href="https://piafzam.duckdns.org/" target="_top"
+         style="color:inherit;text-decoration:none;">PIAFZAM 2.0</a>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 st.title("PIAFZAM")
 st.caption("Quel oiseau chante dans cet enregistrement ?")
 
@@ -48,25 +61,30 @@ st.audio(fichier)
 if not st.button("Analyser", type="primary"):
     st.stop()
 
-try:
-    response = requests.post(
-        f"{API}/listen/predict",
-        files={"audio": (fichier.name, fichier.getvalue())},
-        headers=HEADERS,
-        timeout=120,
-    )
-    response.raise_for_status()
-    preds = response.json().get("predictions") or []
-except requests.HTTPError:
-    detail = response.text
+error = None
+preds = []
+with st.spinner("Analyse en cours…"):
     try:
-        detail = response.json().get("detail", detail)
-    except Exception:
-        pass
-    st.error(detail)
-    st.stop()
-except Exception as error:
-    st.error(str(error))
+        response = requests.post(
+            f"{API}/listen/predict",
+            files={"audio": (fichier.name, fichier.getvalue())},
+            headers=HEADERS,
+            timeout=120,
+        )
+        response.raise_for_status()
+        preds = response.json().get("predictions") or []
+    except requests.HTTPError:
+        detail = response.text
+        try:
+            detail = response.json().get("detail", detail)
+        except Exception:
+            pass
+        error = detail
+    except Exception as exc:
+        error = str(exc)
+
+if error:
+    st.error(error)
     st.stop()
 
 # 3. Résultats (seuil MIN_SHOW)

@@ -1,6 +1,8 @@
 # piafzam-streamlit
 
-Client Streamlit public : micro ou fichier → API BirdNET déjà en ligne.
+App : **https://piafzam-app.streamlit.app/**
+
+Client Streamlit public : fichier audio → API BirdNET déjà en ligne.
 
 **Ce repo ne contient pas le modèle.** L’analyse tourne sur
 [piafzam.duckdns.org](https://piafzam.duckdns.org/)
@@ -13,7 +15,8 @@ commit / push ici.
 
 ## Streamlit Cloud
 
-1. [share.streamlit.io](https://share.streamlit.io) → ce repo, fichier `app.py`.
+1. [https://piafzam-app.streamlit.app/](https://piafzam-app.streamlit.app/)
+   — [share.streamlit.io](https://share.streamlit.io) → ce repo, fichier `app.py`.
 2. Secrets :
 
 ```toml
