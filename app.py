@@ -76,27 +76,6 @@ if not shown:
     st.stop()
 
 for pred in shown:
-    scientific = pred.get("scientific") or ""
-    common = pred.get("common") or scientific
+    name = pred.get("common") or pred.get("species") or pred.get("scientific") or ""
     conf = float(pred.get("confidence") or 0)
-
-    st.subheader(f"{common} ({conf:.0%})")
-    st.caption(scientific)
-
-    slug = scientific.lower().replace(" ", "_")
-    if slug:
-        photo = requests.get(
-            f"{API}/listen/photos/{slug}",
-            headers=HEADERS,
-            timeout=10,
-        )
-        if photo.ok:
-            st.image(photo.content, width=280)
-
-    wiki = scientific.replace(" ", "_")
-    xc = scientific.replace(" ", "-")
-    st.markdown(
-        f"[Wikipédia](https://fr.wikipedia.org/wiki/{wiki}) · "
-        f"[Xeno-canto](https://xeno-canto.org/species/{xc}) · "
-        f"[iNaturalist](https://www.inaturalist.org/taxa?q={scientific})"
-    )
+    st.subheader(f"{name} ({conf:.0%})")
