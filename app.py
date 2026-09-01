@@ -1,4 +1,4 @@
-"""Client Streamlit Cloud : micro/fichier → API listen (VM).
+"""Client Streamlit Cloud : fichier audio → API listen (VM).
 
 Source de vérité dans le repo privé. Copie publique :
 `make sync-streamlit-cloud` → `piafzam-streamlit/app.py`.
@@ -12,11 +12,13 @@ import os
 import requests
 import streamlit as st
 
+# On n'affiche une espèce que si BirdNET est assez sûr
 MIN_SHOW = 0.10
 DEFAULT_API = "https://piafzam.duckdns.org"
 
 
 def _secret(name: str, default: str = "") -> str:
+    """Lit Streamlit secrets, sinon l'env, sinon le défaut."""
     try:
         value = st.secrets[name]
     except Exception:
@@ -28,67 +30,73 @@ API = _secret("PIAFZAM_API", DEFAULT_API).rstrip("/")
 DEMO_KEY = _secret("PIAFZAM_DEMO_KEY")
 HEADERS = {"X-Demo-Key": DEMO_KEY} if DEMO_KEY else {}
 
-st.set_page_config(page_title="piafzam")
-st.title("piafzam")
+st.set_page_config(page_title="PIAFZAM", page_icon="🪶", layout="centered")
+st.title("PIAFZAM")
+st.caption("Quel oiseau chante dans cet enregistrement ?")
 
-blob = st.audio_input("enregistre un truc")
-fichier = st.file_uploader("ou un fichier", type=["wav", "mp3", "ogg", "flac", "m4a"])
-data = None
-name = "clip.wav"
-if blob is not None:
-    data = blob.getvalue()
-elif fichier is not None:
-    data = fichier.getvalue()
-    name = fichier.name or name
+# 1. Upload
+fichier = st.file_uploader(
+    "Fichier audio",
+    type=["wav", "mp3", "ogg", "flac", "m4a"],
+)
+if fichier is None:
+    st.stop()
 
-if data and st.button("analyser"):
+st.audio(fichier)
+
+# 2. Appel API
+if not st.button("Analyser", type="primary"):
+    st.stop()
+
+try:
+    response = requests.post(
+        f"{API}/listen/predict",
+        files={"audio": (fichier.name, fichier.getvalue())},
+        headers=HEADERS,
+        timeout=120,
+    )
+    response.raise_for_status()
+    preds = response.json().get("predictions") or []
+except requests.HTTPError:
+    detail = response.text
     try:
-        response = requests.post(
-            f"{API}/listen/predict",
-            files={"audio": (name, data)},
-            headers=HEADERS,
-            timeout=120,
-        )
-        response.raise_for_status()
-    except requests.HTTPError:
-        detail = response.text
-        try:
-            detail = response.json().get("detail", detail)
-        except Exception:
-            pass
-        st.error(detail)
-        st.stop()
-    except Exception as error:
-        st.error(str(error))
-        st.stop()
+        detail = response.json().get("detail", detail)
+    except Exception:
+        pass
+    st.error(detail)
+    st.stop()
+except Exception as error:
+    st.error(str(error))
+    st.stop()
 
-    shown = [
-        pred
-        for pred in response.json().get("predictions") or []
-        if float(pred.get("confidence") or 0) >= MIN_SHOW
-    ]
-    if not shown:
-        st.warning("rien de clair. réessaie.")
-    else:
-        for pred in shown:
-            scientific = pred.get("scientific") or ""
-            common = pred.get("common") or scientific
-            conf = float(pred.get("confidence") or 0)
-            st.subheader(f"{common} ({conf:.0%})")
-            st.write(scientific)
-            slug = scientific.lower().replace(" ", "_")
-            if slug:
-                photo = requests.get(
-                    f"{API}/listen/photos/{slug}",
-                    headers=HEADERS,
-                    timeout=10,
-                )
-                if photo.ok:
-                    st.image(photo.content, width=280)
-            wiki = scientific.replace(" ", "_")
-            xc = scientific.replace(" ", "-")
-            st.write(
-                f"[wiki](https://fr.wikipedia.org/wiki/{wiki}) · "
-                f"[xeno-canto](https://xeno-canto.org/species/{xc}) · "
-                f"[inat](https://www.inaturalist.org/taxa?q={scientific})"
-            )
+# 3. Résultats (seuil MIN_SHOW)
+shown = [p for p in preds if float(p.get("confidence") or 0) >= MIN_SHOW]
+if not shown:
+    st.warning("Rien de clair. Réessaie.")
+    st.stop()
+
+for pred in shown:
+    scientific = pred.get("scientific") or ""
+    common = pred.get("common") or scientific
+    conf = float(pred.get("confidence") or 0)
+
+    st.subheader(f"{common} ({conf:.0%})")
+    st.caption(scientific)
+
+    slug = scientific.lower().replace(" ", "_")
+    if slug:
+        photo = requests.get(
+            f"{API}/listen/photos/{slug}",
+            headers=HEADERS,
+            timeout=10,
+        )
+        if photo.ok:
+            st.image(photo.content, width=280)
+
+    wiki = scientific.replace(" ", "_")
+    xc = scientific.replace(" ", "-")
+    st.markdown(
+        f"[Wikipédia](https://fr.wikipedia.org/wiki/{wiki}) · "
+        f"[Xeno-canto](https://xeno-canto.org/species/{xc}) · "
+        f"[iNaturalist](https://www.inaturalist.org/taxa?q={scientific})"
+    )
