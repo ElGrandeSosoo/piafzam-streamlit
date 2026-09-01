@@ -2,11 +2,11 @@
 
 App : **https://piafzam-app.streamlit.app/**
 
-Client Streamlit public : fichier audio → API BirdNET déjà en ligne.
+Client Streamlit public : spectrogramme PNG/JPG → API CNN déjà en ligne.
 
 **Ce repo ne contient pas le modèle.** L’analyse tourne sur
 [piafzam.duckdns.org](https://piafzam.duckdns.org/)
-(`POST /listen/predict`). Le code source (page listen, BirdNET, jobs)
+(`POST /predict`). Le code source (CNN, page listen, jobs)
 reste dans le projet privé.
 
 `app.py` est une copie de `piafzam/demo/cloud_app.py`. Après un

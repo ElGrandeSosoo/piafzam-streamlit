@@ -1,4 +1,4 @@
-"""Client Streamlit Cloud : fichier audio → API listen (VM).
+"""Client Streamlit Cloud : spectrogramme → API CNN (VM).
 
 Source de vérité dans le repo privé. Copie publique :
 `make sync-streamlit-cloud` → `piafzam-streamlit/app.py`.
@@ -12,7 +12,7 @@ import os
 import requests
 import streamlit as st
 
-# On n'affiche une espèce que si BirdNET est assez sûr
+# On n'affiche une espèce que si le CNN est assez sûr
 MIN_SHOW = 0.10
 DEFAULT_API = "https://piafzam.duckdns.org"
 
@@ -32,6 +32,7 @@ def _secret(name: str, default: str = "") -> str:
 API = _secret("PIAFZAM_API", DEFAULT_API).rstrip("/")
 DEMO_KEY = _secret("PIAFZAM_DEMO_KEY")
 HEADERS = {"X-Demo-Key": DEMO_KEY} if DEMO_KEY else {}
+PREDICT_URL = f"{API}/predict"
 
 st.markdown(
     """
@@ -45,19 +46,19 @@ st.markdown(
     unsafe_allow_html=True,
 )
 st.title("PIAFZAM")
-st.caption("Quel oiseau chante dans cet enregistrement ?")
+st.caption("Quel oiseau est sur ce spectrogramme ?")
 
-# 1. Upload
+# 1. Upload — PNG / JPG, pas d'audio
 fichier = st.file_uploader(
-    "Fichier audio",
-    type=["wav", "mp3", "ogg", "flac", "m4a"],
+    "Spectrogramme",
+    type=["png", "jpg", "jpeg"],
 )
 if fichier is None:
     st.stop()
 
-st.audio(fichier)
+st.image(fichier)
 
-# 2. Appel API
+# 2. Appel API → POST /predict
 if not st.button("Analyser", type="primary"):
     st.stop()
 
@@ -66,8 +67,8 @@ preds = []
 with st.spinner("Analyse en cours…"):
     try:
         response = requests.post(
-            f"{API}/listen/predict",
-            files={"audio": (fichier.name, fichier.getvalue())},
+            PREDICT_URL,
+            files={"spectro": (fichier.name, fichier.getvalue())},
             headers=HEADERS,
             timeout=120,
         )
@@ -87,13 +88,13 @@ if error:
     st.error(error)
     st.stop()
 
-# 3. Résultats (seuil MIN_SHOW)
+# 3. Nom d'espèce + %
 shown = [p for p in preds if float(p.get("confidence") or 0) >= MIN_SHOW]
 if not shown:
     st.warning("Rien de clair. Réessaie.")
     st.stop()
 
 for pred in shown:
-    name = pred.get("common") or pred.get("species") or pred.get("scientific") or ""
+    name = pred.get("species") or ""
     conf = float(pred.get("confidence") or 0)
     st.subheader(f"{name} ({conf:.0%})")
