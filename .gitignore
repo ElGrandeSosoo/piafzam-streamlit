@@ -1,4 +1,8 @@
+# Environnement virtuel local
 .venv/
+# Bytecode Python
 __pycache__/
+# Secrets Streamlit : jamais commités (Cloud = console, pas ce fichier)
 .streamlit/secrets.toml
+# Fichiers macOS
 .DS_Store

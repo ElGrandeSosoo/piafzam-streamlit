@@ -20,6 +20,8 @@ st.set_page_config(
     page_icon=str(_ICON) if _ICON.is_file() else "🪶",
     layout="centered",
 )
+
+# dotenv optionnel : en local on lit .env ; sur Cloud le paquet n'est pas installé.
 try:
     from dotenv import load_dotenv
 
@@ -34,6 +36,7 @@ MIN_SHOW = 0.10
 # Local : http://127.0.0.1:8000 — Cloud : secret console PIAFZAM_API (pas de toml dans le repo)
 _secret_api = ""
 try:
+    # Streamlit Cloud : secret console. En local, pas de secrets.toml → on ignore.
     if st.secrets.load_if_toml_exists():
         _secret_api = str(st.secrets.get("PIAFZAM_API") or "")
 except Exception:
@@ -41,6 +44,7 @@ except Exception:
 API = str(_secret_api or os.environ.get("PIAFZAM_API") or "http://127.0.0.1:8000").strip().rstrip("/")
 PREDICT_URL = f"{API}/predict"
 
+# Lien discret vers l'écoute micro (front FastAPI), hors de cette démo spectro.
 st.markdown(
     """
     <div style="position:fixed;left:0;right:0;bottom:0.45rem;z-index:999;
@@ -73,6 +77,7 @@ error = None
 preds = []
 with st.spinner("Analyse en cours…"):
     try:
+        # Le champ "spectro" est le contrat de piafzam.api.fast (UploadFile).
         response = requests.post(
             PREDICT_URL,
             files={"spectro": (fichier.name, fichier.getvalue())},
@@ -81,6 +86,7 @@ with st.spinner("Analyse en cours…"):
         response.raise_for_status()
         preds = response.json().get("predictions") or []
     except requests.HTTPError:
+        # 4xx/5xx : on tente le champ FastAPI "detail", sinon le corps brut.
         detail = response.text
         try:
             detail = response.json().get("detail", detail)
@@ -88,6 +94,7 @@ with st.spinner("Analyse en cours…"):
             pass
         error = detail
     except requests.RequestException as exc:
+        # Timeout, DNS, connexion refusée : l'API n'est pas joignable.
         hint = ""
         if "127.0.0.1" in API or "localhost" in API:
             hint = " Lance `make api` dans un autre terminal."
