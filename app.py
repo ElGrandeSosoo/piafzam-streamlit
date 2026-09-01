@@ -1,8 +1,7 @@
-"""Client Streamlit Cloud : spectrogramme → API CNN (VM).
+"""Frontend Streamlit — même contrat que `taxifare-website` au bootcamp.
 
-Source de vérité dans le repo privé. Copie publique :
-`make sync-streamlit-cloud` → `piafzam-streamlit/app.py`.
-Aucun import `piafzam` : ce fichier doit rester copiable tel quel.
+Pas de TensorFlow. On appelle `piafzam.api.fast` en HTTP (`POST /predict`).
+Local : `make api` puis `make demo`. Cloud : le même fichier, secret `PIAFZAM_API`.
 """
 
 from __future__ import annotations
@@ -12,43 +11,31 @@ import os
 import requests
 import streamlit as st
 
-# On n'affiche une espèce que si le CNN est assez sûr
-MIN_SHOW = 0.10
-DEFAULT_API = "https://piafzam.duckdns.org"
-
 # page_config d'abord (Cloud refuse toute commande Streamlit avant).
 st.set_page_config(page_title="PIAFZAM", page_icon="🪶", layout="centered")
+try:
+    from dotenv import load_dotenv
 
+    load_dotenv()
+except ImportError:
+    pass
 
-def _secret(name: str, default: str = "") -> str:
-    """Lit Streamlit secrets, sinon l'env, sinon le défaut."""
-    try:
-        value = st.secrets[name]
-    except Exception:
-        value = os.environ.get(name, default)
-    return str(value or default).strip()
+# On n'affiche une espèce que si le CNN est assez sûr
+MIN_SHOW = 0.10
 
-
-API = _secret("PIAFZAM_API", DEFAULT_API).rstrip("/")
-DEMO_KEY = _secret("PIAFZAM_DEMO_KEY")
-HEADERS = {"X-Demo-Key": DEMO_KEY} if DEMO_KEY else {}
+# url = 'https://taxifare.lewagon.ai/predict'
+# Local : http://127.0.0.1:8000 — Cloud : secret PIAFZAM_API (make api, pas duckdns)
+try:
+    _secret_api = st.secrets.get("PIAFZAM_API", "")
+except Exception:
+    _secret_api = ""
+API = str(_secret_api or os.environ.get("PIAFZAM_API") or "http://127.0.0.1:8000").strip().rstrip("/")
 PREDICT_URL = f"{API}/predict"
 
-st.markdown(
-    """
-    <div style="position:fixed;left:0;right:0;bottom:0.45rem;z-index:999;
-                text-align:center;font-size:0.7rem;letter-spacing:0.18em;
-                opacity:0.38;">
-      <a href="https://piafzam.duckdns.org/" target="_top"
-         style="color:inherit;text-decoration:none;">PIAFZAM 2.0</a>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
 st.title("PIAFZAM")
 st.caption("Quel oiseau est sur ce spectrogramme ?")
 
-# 1. Upload — PNG / JPG, pas d'audio
+# 1. Contrôleurs (upload) — PNG / JPG, pas d'audio
 fichier = st.file_uploader(
     "Spectrogramme",
     type=["png", "jpg", "jpeg"],
@@ -58,7 +45,7 @@ if fichier is None:
 
 st.image(fichier)
 
-# 2. Appel API → POST /predict
+# 2. Appel API → POST /predict (pas de model.keras dans le front)
 if not st.button("Analyser", type="primary"):
     st.stop()
 
@@ -69,7 +56,6 @@ with st.spinner("Analyse en cours…"):
         response = requests.post(
             PREDICT_URL,
             files={"spectro": (fichier.name, fichier.getvalue())},
-            headers=HEADERS,
             timeout=120,
         )
         response.raise_for_status()
@@ -81,8 +67,11 @@ with st.spinner("Analyse en cours…"):
         except Exception:
             pass
         error = detail
-    except Exception as exc:
-        error = str(exc)
+    except requests.RequestException as exc:
+        hint = ""
+        if "127.0.0.1" in API or "localhost" in API:
+            hint = " Lance `make api` dans un autre terminal."
+        error = f"API injoignable ({API}).{hint} {exc}"
 
 if error:
     st.error(error)

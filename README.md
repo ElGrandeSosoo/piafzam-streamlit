@@ -2,35 +2,31 @@
 
 App : **https://piafzam-app.streamlit.app/**
 
-Client Streamlit public : spectrogramme PNG/JPG → API CNN déjà en ligne.
+Front Streamlit public (même fichier que `piafzam/demo/app.py`) :
+spectrogramme PNG/JPG → `POST /predict`. **Pas de modèle ici.**
 
-**Ce repo ne contient pas le modèle.** L’analyse tourne sur
-[piafzam.duckdns.org](https://piafzam.duckdns.org/)
-(`POST /predict`). Le code source (CNN, page listen, jobs)
-reste dans le projet privé.
+L’API, c’est `piafzam.api.fast` (`make api`), comme taxifare.
+Pas [piafzam.duckdns.org](https://piafzam.duckdns.org/) (ça, c’est l’écoute BirdNET).
 
-`app.py` est une copie de `piafzam/demo/cloud_app.py`. Après un
-changement : dans le projet privé, `make sync-streamlit-cloud`, puis
-commit / push ici.
+Après un changement dans le projet privé : `make sync-streamlit-cloud`,
+puis commit / push ici.
 
 ## Streamlit Cloud
 
 1. [https://piafzam-app.streamlit.app/](https://piafzam-app.streamlit.app/)
-   — [share.streamlit.io](https://share.streamlit.io) → ce repo, fichier `app.py`.
-2. Secrets :
+   — ce repo, fichier `app.py`.
+2. Secret obligatoire :
 
 ```toml
-PIAFZAM_API = "https://piafzam.duckdns.org"
-PIAFZAM_DEMO_KEY = "même valeur que LISTEN_DEMO_KEY sur la VM"
+PIAFZAM_API = "https://…  # URL publique de `make api` / piafzam.api.fast"
 ```
 
-3. La VM listen doit être allumée (idle-stop 1 h). La clé saute le
-   quota 12 requêtes / IP / minute (tous les visiteurs Cloud partagent
-   une IP).
+Sans ce secret, le front vise `http://127.0.0.1:8000` et l’analyse échoue.
 
 ## Local
 
 ```bash
 pip install -r requirements.txt
+# dans un autre terminal, dans le projet privé : make api
 streamlit run app.py
 ```
