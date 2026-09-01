@@ -24,9 +24,11 @@ except ImportError:
 MIN_SHOW = 0.10
 
 # url = 'https://taxifare.lewagon.ai/predict'
-# Local : http://127.0.0.1:8000 — Cloud : secret PIAFZAM_API (make api, pas duckdns)
+# Local : http://127.0.0.1:8000 — Cloud : secret console PIAFZAM_API (pas de toml dans le repo)
+_secret_api = ""
 try:
-    _secret_api = st.secrets.get("PIAFZAM_API", "")
+    if st.secrets.load_if_toml_exists():
+        _secret_api = str(st.secrets.get("PIAFZAM_API") or "")
 except Exception:
     _secret_api = ""
 API = str(_secret_api or os.environ.get("PIAFZAM_API") or "http://127.0.0.1:8000").strip().rstrip("/")
