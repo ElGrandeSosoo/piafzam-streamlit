@@ -29,20 +29,10 @@ try:
 except ImportError:
     pass
 
-# On n'affiche une espèce que si le CNN est assez sûr
-MIN_SHOW = 0.10
+import streamlit as st
 
-# url = 'https://taxifare.lewagon.ai/predict'
-# Local : http://127.0.0.1:8000 — Cloud : secret console PIAFZAM_API (pas de toml dans le repo)
-_secret_api = ""
-try:
-    # Streamlit Cloud : secret console. En local, pas de secrets.toml → on ignore.
-    if st.secrets.load_if_toml_exists():
-        _secret_api = str(st.secrets.get("PIAFZAM_API") or "")
-except Exception:
-    _secret_api = ""
-API = str(_secret_api or os.environ.get("PIAFZAM_API") or "http://127.0.0.1:8000").strip().rstrip("/")
-PREDICT_URL = f"{API}/predict"
+spell = st.secrets['spell']
+key = st.secrets.some_magic_api.key
 
 # Lien discret vers l'écoute micro (front FastAPI), hors de cette démo spectro.
 st.markdown(
@@ -56,18 +46,15 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-st.title("PIAFZAM")
-st.caption("Quel oiseau est sur ce spectrogramme ?")
+st.title("PIAFZAM 🕊️")
+st.caption("Quel espece d'oiseau est en train de chanter 🎵?")
 
 # 1. Contrôleurs (upload) — PNG / JPG, pas d'audio
-fichier = st.file_uploader(
-    "Spectrogramme",
-    type=["png", "jpg", "jpeg"],
-)
-if fichier is None:
-    st.stop()
 
-st.image(fichier)
+audio_value = st.audio_input("Record high quality audio", sample_rate=44100)
+
+if audio_value:
+    st.audio(audio_value)
 
 # 2. Appel API → POST /predict (pas de model.keras dans le front)
 if not st.button("Analyser", type="primary"):
@@ -85,6 +72,7 @@ with st.spinner("Analyse en cours…"):
         )
         response.raise_for_status()
         preds = response.json().get("predictions") or []
+        
     except requests.HTTPError:
         # 4xx/5xx : on tente le champ FastAPI "detail", sinon le corps brut.
         detail = response.text
@@ -93,6 +81,7 @@ with st.spinner("Analyse en cours…"):
         except Exception:
             pass
         error = detail
+        
     except requests.RequestException as exc:
         # Timeout, DNS, connexion refusée : l'API n'est pas joignable.
         hint = ""
