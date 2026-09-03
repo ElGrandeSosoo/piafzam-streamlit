@@ -1,4 +1,4 @@
 # UI Streamlit Cloud (et `streamlit run app.py` en local)
-streamlit>=1.32
+streamlit>=1.36
 # Appels HTTP vers FastAPI (`POST /predict`)
 requests>=2.31
