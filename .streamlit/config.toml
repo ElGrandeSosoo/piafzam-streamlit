@@ -1,0 +1,3 @@
+[client]
+# Dossier pages/ désactivé : les labels viennent de st.Page(title=...).
+showSidebarNavigation = false

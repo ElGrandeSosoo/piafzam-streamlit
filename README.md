@@ -16,7 +16,7 @@ puis commit / push ici.
 Le secret `PIAFZAM_API` est uniquement dans la console Streamlit Cloud
 (App settings → Secrets). Rien dans ce repo.
 
-Le titre de la carte Slack / Discord vient de `page_title` dans `app.py`.
+Le titre de la carte Slack / Discord vient de `page_title` dans `app/Hello.py`.
 La description est ce premier paragraphe. L’image est une capture de
 l’app (Streamlit Cloud, jusqu’à 24 h).
 
@@ -25,5 +25,5 @@ l’app (Streamlit Cloud, jusqu’à 24 h).
 ```bash
 pip install -r requirements.txt
 # dans un autre terminal, dans le projet privé : make api
-streamlit run app.py
+streamlit run app/Hello.py
 ```
