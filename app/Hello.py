@@ -48,7 +48,7 @@ def accueil():
             )
         }
 
-        url = "http://localhost:8000/predict"  # URL de votre API FastAPI
+        url = st.secrets["api_url"]
 
         # 4. Bouton de prédiction
         if st.button("Analyser l'audio"):
