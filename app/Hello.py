@@ -5,10 +5,6 @@ from datetime import date, time
 import numpy as np
 
 
-# spell = st.secrets['spell']
-# key = st.secrets.some_magic_api.key
-
-
 def accueil():
     st.title("PIAFZAM 🕊️")
     st.caption("Quelle espèce d'oiseau est en train de chanter 🎵 ?")
@@ -78,8 +74,8 @@ st.set_page_config(page_title="Piafzam", page_icon="icon.png")
 pg = st.navigation(
     [
         st.Page(accueil, title="Piafzam", default=True),
-        st.Page("pages/page_01.py", title="Micro"),
-        st.Page("pages/page_02.py", title="Fichier"),
+        st.Page("views/page_01.py", title="Micro", url_path="micro"),
+        st.Page("views/page_02.py", title="Fichier", url_path="fichier"),
     ]
 )
 pg.run()
