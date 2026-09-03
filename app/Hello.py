@@ -1,8 +1,12 @@
+from pathlib import Path
+
 import streamlit as st
 import requests
 import pandas as pd
 from datetime import date, time
 import numpy as np
+
+_DIR = Path(__file__).resolve().parent
 
 
 # spell = st.secrets['spell']
@@ -80,8 +84,8 @@ st.set_page_config(page_title="Piafzam", page_icon="icon.png")
 pg = st.navigation(
     [
         st.Page(accueil, title="Piafzam", default=True),
-        st.Page("views/page_01.py", title="Micro", url_path="micro"),
-        st.Page("views/page_02.py", title="Fichier", url_path="fichier"),
+        st.Page(_DIR / "pages" / "page_01.py", title="Micro"),
+        st.Page(_DIR / "pages" / "page_02.py", title="Fichier"),
     ]
 )
 pg.run()
