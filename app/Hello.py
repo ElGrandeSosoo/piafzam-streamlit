@@ -12,9 +12,6 @@ _DIR = Path(__file__).resolve().parent
 # spell = st.secrets['spell']
 # key = st.secrets.some_magic_api.key
 
-
-st.title("PIAFZAM 🕊️")
-st.caption("Quelle espèce d'oiseau est en train de chanter 🎵 ?")
 def accueil():
     st.title("PIAFZAM 🕊️")
     st.caption("Quelle espèce d'oiseau est en train de chanter 🎵 ?")
