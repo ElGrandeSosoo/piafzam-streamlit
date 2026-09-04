@@ -1,8 +1,14 @@
+from pathlib import Path
+import sys
+
 import streamlit as st
 import requests
 import pandas as pd
 from datetime import date, time
 import numpy as np
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from api_url import predict_url
 
 
 # spell = st.secrets['spell']
@@ -17,18 +23,18 @@ st.caption("Quelle espèce d'oiseau est en train de chanter 🎵 ?")
 uploaded_audio = st.file_uploader(
     "Choisissez un fichier audio depuis votre ordinateur",
     type=["wav", "mp3", "ogg", "m4a", "flac"],
+    key="fichier_uploader",
 )
 
-# 2. Gestion de la session_state
+# 2. Gestion de la session_state (clé distincte de l'onglet Piafzam)
 if uploaded_audio is not None:
-    st.session_state["uploaded_audio"] = uploaded_audio
-elif "uploaded_audio" in st.session_state and uploaded_audio is None:
-    # Réinitialisation si le fichier est supprimé du uploader
-    del st.session_state["uploaded_audio"]
+    st.session_state["fichier_uploaded_audio"] = uploaded_audio
+elif "fichier_uploaded_audio" in st.session_state and uploaded_audio is None:
+    del st.session_state["fichier_uploaded_audio"]
 
 # 3. Traitement et envoi à l'API
-if "uploaded_audio" in st.session_state:
-    current_audio = st.session_state["uploaded_audio"]
+if "fichier_uploaded_audio" in st.session_state:
+    current_audio = st.session_state["fichier_uploaded_audio"]
 
     # Lecteur audio
     st.audio(current_audio)
@@ -48,10 +54,10 @@ if "uploaded_audio" in st.session_state:
         )
     }
 
-    url = st.secrets["api_url"]
+    url = predict_url()
 
     # 4. Bouton de prédiction
-    if st.button("Analyser l'audio"):
+    if st.button("Analyser l'audio", key="fichier_analyze"):
         with st.spinner("Analyse du fichier audio en cours..."):
             try:
                 response = requests.post(url, files=files)

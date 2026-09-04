@@ -6,6 +6,8 @@ import pandas as pd
 from datetime import date, time
 import numpy as np
 
+from api_url import predict_url
+
 _DIR = Path(__file__).resolve().parent
 
 
@@ -20,18 +22,18 @@ def accueil():
     uploaded_audio = st.file_uploader(
         "Choisissez un fichier audio depuis votre ordinateur",
         type=["wav", "mp3", "ogg", "m4a", "flac"],
+        key="accueil_uploader",
     )
 
-    # 2. Gestion de la session_state
+    # 2. Gestion de la session_state (clé distincte de l'onglet Fichier)
     if uploaded_audio is not None:
-        st.session_state["uploaded_audio"] = uploaded_audio
-    elif "uploaded_audio" in st.session_state and uploaded_audio is None:
-        # Réinitialisation si le fichier est supprimé du uploader
-        del st.session_state["uploaded_audio"]
+        st.session_state["accueil_uploaded_audio"] = uploaded_audio
+    elif "accueil_uploaded_audio" in st.session_state and uploaded_audio is None:
+        del st.session_state["accueil_uploaded_audio"]
 
     # 3. Traitement et envoi à l'API
-    if "uploaded_audio" in st.session_state:
-        current_audio = st.session_state["uploaded_audio"]
+    if "accueil_uploaded_audio" in st.session_state:
+        current_audio = st.session_state["accueil_uploaded_audio"]
 
         # Lecteur audio
         st.audio(current_audio)
@@ -51,10 +53,10 @@ def accueil():
             )
         }
 
-        url = st.secrets["api_url"]
+        url = predict_url()
 
         # 4. Bouton de prédiction
-        if st.button("Analyser l'audio"):
+        if st.button("Analyser l'audio", key="accueil_analyze"):
             with st.spinner("Analyse du fichier audio en cours..."):
                 try:
                     response = requests.post(url, files=files)

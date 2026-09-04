@@ -1,8 +1,14 @@
+from pathlib import Path
+import sys
+
 import streamlit as st
 import requests
 import pandas as pd
 from datetime import date, time
 import numpy as np
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from api_url import predict_url
 
 
 # spell = st.secrets['spell']
@@ -39,10 +45,10 @@ if "recorded_audio" in st.session_state:
         )
     }
 
-    url = st.secrets["api_url"]  # Vérifiez votre URL API
+    url = predict_url()
 
     # 4. Le bouton s'appuie sur la mémoire de session
-    if st.button("Analyser l'audio"):
+    if st.button("Analyser l'audio", key="micro_analyze"):
         with st.spinner("Analyse en cours..."):
             try:
                 response = requests.post(url, files=files)
