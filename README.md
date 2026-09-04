@@ -6,7 +6,7 @@ App : **https://piafzam-app.streamlit.app/**
 
 Trois onglets (`app/Hello.py`) : **Piafzam**, **Micro**, **Fichier**.
 
-Secret `api_url` (ex. `http://127.0.0.1:8000/predict`) : console Streamlit Cloud,
+Secret `api_url` (base Cloud Run **ou** `…/predict`) : console Streamlit Cloud,
 ou `.streamlit/secrets.toml` en local. Rien de secret dans ce repo.
 
 ## Local (ce repo)
