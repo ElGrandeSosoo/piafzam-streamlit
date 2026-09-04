@@ -1,4 +1,25 @@
-<!-- Repo public Streamlit Cloud : client HTTP uniquement, aucun modèle Keras ici. -->
 # Piafzam
 
-Envoie un spectrogramme : Piafzam identifie l’espèce d’oiseau (35 espèces européennes).
+Front Streamlit HTTP-only (pas de Keras) : audio (fichier ou micro) → `POST /predict`.
+
+App : **https://piafzam-app.streamlit.app/**
+
+Trois onglets (`app/Hello.py`) : **Piafzam**, **Micro**, **Fichier**.
+
+Secret `api_url` (ex. `http://127.0.0.1:8000/predict`) : console Streamlit Cloud,
+ou `.streamlit/secrets.toml` en local. Rien de secret dans ce repo.
+
+## Local (ce repo)
+
+```bash
+pip install -r requirements.txt
+# API du projet privé dans un autre terminal : make api
+streamlit run app/Hello.py
+```
+
+## Local (projet privé)
+
+```bash
+make api    # :8000
+make demo   # :8501 → piafzam/demo/app/Hello.py
+```

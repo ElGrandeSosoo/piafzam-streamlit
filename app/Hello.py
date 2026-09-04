@@ -76,7 +76,7 @@ def accueil():
                     st.error(f"Impossible de contacter l'API : {e}")
 
 
-st.set_page_config(page_title="Piafzam", page_icon="icon.png")
+st.set_page_config(page_title="Piafzam", page_icon=str(_DIR / "icon.png"))
 
 pg = st.navigation(
     [
